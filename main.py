@@ -1,6 +1,5 @@
 import requests
 import json
-import pprint
 import PySimpleGUI as sg
 
 layout = [  
@@ -38,6 +37,8 @@ while True:
             distributionCenterURL = 'https://lojas.magazineluiza.com.br/filiais/' + str(deliveryOption['distribution_center'])
             distributionCenterRequest = requests.get(distributionCenterURL)
             distributionCenterHTML = distributionCenterRequest.text
+
+            distributionCenterHTML.find("col-7 col-md-8 m-auto")
 
             firstCut = distributionCenterHTML[(103+distributionCenterHTML.find("col-7 col-md-8 m-auto")):]
             secondCut = firstCut[firstCut.find("data-v-12a79897")+16:]
