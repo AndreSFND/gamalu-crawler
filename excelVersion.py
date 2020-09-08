@@ -53,7 +53,7 @@ while True:
             'referer': 'https://www.magazineluiza.com.br',
         }
 
-        productRequest = requests.get(productURL, headers=productHeaders)
+        productRequest = requests.get(productURL, headers=productHeaders, verify='certificate.pem')
         productData = json.loads(productRequest.text)
 
         for deliveryOption in productData['delivery']:
@@ -65,7 +65,7 @@ while True:
             if deliveryOption['distribution_center'] > 0:
 
                 distributionCenterURL = 'https://lojas.magazineluiza.com.br/filiais/' + str(deliveryOption['distribution_center'])
-                distributionCenterRequest = requests.get(distributionCenterURL)
+                distributionCenterRequest = requests.get(distributionCenterURL, verify='certificate.pem')
                 distributionCenterHTML = distributionCenterRequest.text
 
                 distributionCenterHTML.find("col-7 col-md-8 m-auto")
