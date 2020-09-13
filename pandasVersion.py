@@ -1,8 +1,8 @@
-import requests
-import json
-import pandas
-from datetime import datetime
 import PySimpleGUI as sg
+import requests
+import pandas
+import json
+import time
 
 layout = [  
     [sg.Text('Selecione o arquivo (.xlsx)', font='Roboto 10')],
@@ -27,22 +27,27 @@ while True:
     pbCurrent = 0
     pbUpdate = 100 / len(dataFrame.values)
 
-    tempData = {
-        'reference_row': [], 
-        'zip_code': [], 
-        'product': [], 
-        'description': [], 
-        'distribution_center': [],
-        'name': [],
-        'city': [],
-        'sellers': [],
-        'is_deadline': [],
-        'price': [],
-        'time': [],
-        'zip_code_restriction': []
-    }
-
     for index, row in enumerate(dataFrame.values):
+
+        if(index % 100 == 0):
+            time.sleep(20)
+
+        tempData = {
+     
+            'reference_row': [], 
+            'zip_code': [], 
+            'product': [], 
+            'description': [], 
+            'distribution_center': [],
+            'name': [],
+            'city': [],
+            'sellers': [],
+            'is_deadline': [],
+            'price': [],
+            'time': [],
+            'zip_code_restriction': []
+     
+        }
 
         cep = str(row[0])
         product = str(row[1])
@@ -53,7 +58,7 @@ while True:
             'referer': 'https://www.magazineluiza.com.br',
         }
 
-        productRequest = requests.get(productURL, headers=productHeaders, verify='certificate.pem')
+        productRequest = requests.get(productURL, headers=productHeaders, verify=True)
         productData = json.loads(productRequest.text)
 
         for deliveryOption in productData['delivery']:
@@ -65,7 +70,7 @@ while True:
             if deliveryOption['distribution_center'] > 0:
 
                 distributionCenterURL = 'https://lojas.magazineluiza.com.br/filiais/' + str(deliveryOption['distribution_center'])
-                distributionCenterRequest = requests.get(distributionCenterURL, verify='certificate.pem')
+                distributionCenterRequest = requests.get(distributionCenterURL, verify=True)
                 distributionCenterHTML = distributionCenterRequest.text
 
                 distributionCenterHTML.find("col-7 col-md-8 m-auto")
@@ -90,10 +95,25 @@ while True:
             for attribute in deliveryOption:
                 tempData[str(attribute)].append(str(deliveryOption[attribute]))
 
+        if(index == 0):
+
+            tempDataFrame = pandas.DataFrame(data=tempData)
+            tempDataFrame.to_excel(r'Dados magalu.xlsx', index=False)
+        
+        else:
+
+            currentData = pandas.read_excel(r'Dados magalu.xlsx')
+            currentDataFrame = pandas.DataFrame(currentData)
+            tempDataFrame = pandas.DataFrame(data=tempData)
+            
+            newDataFrame = currentDataFrame.append(tempDataFrame)
+            newDataFrame.to_excel(r'Dados magalu.xlsx', index=False)
+
         pbCurrent += pbUpdate
         progressBar.UpdateBar(pbCurrent)
 
-    tempDataFrame = pandas.DataFrame(data=tempData)
-    tempDataFrame.to_excel(r'Saida (gamalu-crawler).xlsx', index=False)
+    currentData = pandas.read_excel(r'Dados magalu.xlsx')
+    currentDataFrame = pandas.DataFrame(currentData)    
+    currentDataFrame.to_excel(r'Dados magalu.xlsx', index=False)
 
-    sg.popup('Arquivo de saida criado: Saida (gamalu-crawler).xlsx')
+    sg.popup('Busca finalizada! Arquivo gerado: Dados magalu.xlsx')
